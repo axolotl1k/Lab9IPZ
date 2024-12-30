@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account</title>
+</head>
+<body>
+<h1>Your Accounts</h1>
+
+<!-- Section for selecting an account -->
+<h2>Select Account</h2>
+<form th:action="@{/account}" method="get">
+    <label for="accountId">Choose Account:</label>
+    <select id="accountId" name="accountId">
+        <!-- Dynamically populate the dropdown with accounts -->
+        <option th:each="acc : ${accounts}" th:value="${acc.id}" th:text="'Account ID: ' + ${acc.id} + ' - ' + ${acc.currency}"></option>
+    </select>
+    <button type="submit">View</button>
+</form>
+
+<!-- Section for displaying account details -->
+<h2>Account Details</h2>
+<p><strong>Account ID:</strong> <span th:text="${account.id}"></span></p>
+<p><strong>Balance:</strong> <span th:text="${account.balance}"></span></p>
+<p><strong>Currency:</strong> <span th:text="${account.currency}"></span></p>
+
+<!-- Section for depositing money -->
+<h2>Deposit Money</h2>
+<form th:action="@{/account/deposit}" method="post">
+    <!-- Hidden field to send the account ID -->
+    <input type="hidden" name="accountId" th:value="${account.id}">
+    <label for="depositAmount">Amount to Deposit:</label>
+    <input type="number" id="depositAmount" name="amount" placeholder="Amount" required>
+    <br>
+    <button type="submit">Deposit</button>
+</form>
+
+<!-- Section for transferring money between accounts -->
+<h2>Transfer Money</h2>
+<form th:action="@{/accounts/transfer}" method="post">
+    <!-- Hidden field to specify the source account -->
+    <input type="hidden" name="fromAccountId" th:value="${account.id}">
+    <label for="toAccountId">To Account ID:</label>
+    <input type="number" id="toAccountId" name="toAccountId" placeholder="Recipient Account ID" required>
+    <br>
+    <!-- Note about transfer currency restrictions -->
+    <p><strong>Note:</strong> You can only transfer to accounts with the same currency (<span th:text="${account.currency}"></span>).</p>
+    <label for="transferAmount">Amount:</label>
+    <input type="number" id="transferAmount" name="amount" placeholder="Amount" required>
+    <br>
+    <button type="submit">Transfer</button>
+</form>
+
+<!-- Section for displaying success or error messages -->
+<div th:if="${message}" style="color: red;">
+    <p th:text="${message}"></p>
+</div>
+
+<!-- Section for creating a new account -->
+<h2>Create New Account</h2>
+<p><a th:href="@{/accounts/create}">Create New Account</a></p>
+
+<!-- Link to logout -->
+<p><a th:href="@{/logout}">Logout</a></p>
+
+<!-- Section for deleting the current account -->
+<h2>Delete Account</h2>
+<form th:action="@{/accounts/delete}" method="post">
+    <!-- Hidden field to specify the account to delete -->
+    <input type="hidden" name="accountId" th:value="${account.id}">
+    <button type="submit">Delete Account</button>
+</form>
+</body>
+</html>
