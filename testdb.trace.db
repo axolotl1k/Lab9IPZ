@@ -267,3 +267,18 @@ DROP TABLE TRANSACTION [42102-232]
 2024-12-30 18:53:23.955037+02:00 jdbc[3]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
 select u1_0.id,u1_0.password,u1_0.username from users u1_0 where u1_0.username=? [42104-232]
+2024-12-31 00:32:27.843905+02:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SELECT * FROM Account\000d\000a[*]SELECT * FROM users"; SQL statement:
+SELECT * FROM Account
+SELECT * FROM users [42000-232]
+2024-12-31 00:32:38.519498+02:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SELECT * FROM ACCOUNT\000d\000a[*]SELECT * FROM USERS"; SQL statement:
+SELECT * FROM ACCOUNT
+SELECT * FROM USERS [42000-232]
+2024-12-31 00:32:43.294127+02:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SELECT * FROM ACCOUNT\000d\000a[*]SELECT * FROM USERS"; SQL statement:
+SELECT * FROM ACCOUNT
+SELECT * FROM USERS [42000-232]
+2024-12-31 00:34:57.328105+02:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SHOW [*]* FROM USERS"; SQL statement:
+SHOW * FROM USERS [42000-232]

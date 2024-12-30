@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.example.IPZ_Lab9"},{"l":"com.example.IPZ_Lab9.controller"},{"l":"com.example.IPZ_Lab9.model"},{"l":"com.example.IPZ_Lab9.repository"},{"l":"com.example.IPZ_Lab9.service"}];updateSearchResults();

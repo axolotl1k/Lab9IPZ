@@ -6,12 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 /**
- * Service class responsible for business logic related to accounts.
- * Provides methods for managing accounts, such as creating, retrieving, updating, and deleting them.
+ * Service layer for managing account-related operations.
+ * Handles business logic for creating, retrieving, updating, and deleting accounts.
  */
 @Service
 public class AccountService {
@@ -20,30 +21,62 @@ public class AccountService {
     private AccountRepository accountRepository;
 
     /**
-     * Retrieves all accounts owned by a specific user.
+     * Prepares data for displaying account details and the list of accounts.
      *
-     * @param owner the username of the account owner
-     * @return a list of accounts owned by the specified user
+     * @param currentUser the currently logged-in user.
+     * @param accountId   the ID of the account to display (optional).
+     * @return a map of attributes to be passed to the view.
+     */
+    public Map<String, Object> prepareAccountView(String currentUser, Long accountId) {
+        List<Account> accounts = getAccountsByOwner(currentUser);
+        Map<String, Object> modelData = new HashMap<>();
+
+        modelData.put("accounts", accounts);
+
+        if (accountId == null && !accounts.isEmpty()) {
+            modelData.put("account", accounts.get(0));
+        } else if (accountId != null) {
+            accounts.stream()
+                    .filter(account -> account.getId().equals(accountId))
+                    .findFirst()
+                    .ifPresent(account -> modelData.put("account", account));
+        }
+
+        return modelData;
+    }
+
+    /**
+     * Retrieves a list of accounts owned by the specified user.
+     *
+     * @param owner the username of the account owner.
+     * @return a list of accounts owned by the user.
      */
     public List<Account> getAccountsByOwner(String owner) {
         return accountRepository.findByOwner(owner);
     }
 
     /**
-     * Creates a new account.
+     * Creates a new account with the specified parameters.
      *
-     * @param account the account to create
-     * @return the created account
+     * @param owner         the username of the account owner.
+     * @param currency      the currency of the account.
+     * @param initialBalance the initial balance of the account.
      */
-    public Account createAccount(Account account) {
-        return accountRepository.save(account);
+    public void createNewAccount(String owner, String currency, Double initialBalance) {
+        Account account = new Account();
+        account.setOwner(owner.toLowerCase());
+        account.setCurrency(currency);
+        account.setBalance(initialBalance);
+
+        accountRepository.save(account);
     }
 
     /**
-     * Deposits a specified amount into an account.
+     * Deposits a specified amount into the account.
      *
-     * @param accountId the ID of the account to deposit into
-     * @param amount    the amount to deposit
+     * @param accountId the ID of the account to deposit into.
+     * @param amount    the amount to deposit.
+     * @throws IllegalArgumentException if the amount is invalid or the account is not found.
      */
     @Transactional
     public void deposit(Long accountId, Double amount) {
@@ -59,12 +92,14 @@ public class AccountService {
     }
 
     /**
-     * Transfers money between accounts.
+     * Transfers money from one account to another.
      *
-     * @param fromAccountId the ID of the source account
-     * @param toAccountId   the ID of the target account
-     * @param amount        the amount to transfer
-     * @param owner         the username of the account owner initiating the transfer
+     * @param fromAccountId the ID of the source account.
+     * @param toAccountId   the ID of the target account.
+     * @param amount        the amount to transfer.
+     * @param owner         the username of the account owner initiating the transfer.
+     * @throws IllegalArgumentException if the transfer fails due to validation issues.
+     * @throws SecurityException        if the user is not authorized to perform the transfer.
      */
     @Transactional
     public void transfer(Long fromAccountId, Long toAccountId, Double amount, String owner) {
@@ -82,22 +117,22 @@ public class AccountService {
         Account toAccount = accountRepository.findById(toAccountId)
                 .orElseThrow(() -> new IllegalArgumentException("Target account not found"));
 
-        // Check ownership of the source account
+        // Check for ownership
         if (!fromAccount.getOwner().equals(owner)) {
             throw new SecurityException("You are not authorized to transfer from this account");
         }
 
-        // Check if currencies match
+        // Check for matching currencies
         if (!fromAccount.getCurrency().equals(toAccount.getCurrency())) {
             throw new IllegalArgumentException("Transfer failed: Currencies of both accounts must match");
         }
 
-        // Check if balance is sufficient
+        // Check for sufficient balance
         if (fromAccount.getBalance() < amount) {
             throw new IllegalArgumentException("Insufficient balance");
         }
 
-        // Perform the transfer
+        // Perform transfer
         fromAccount.setBalance(fromAccount.getBalance() - amount);
         toAccount.setBalance(toAccount.getBalance() + amount);
 
@@ -107,10 +142,11 @@ public class AccountService {
     }
 
     /**
-     * Deletes an account owned by a specific user.
+     * Deletes an account if the user is authorized.
      *
-     * @param accountId the ID of the account to delete
-     * @param owner     the username of the account owner
+     * @param accountId the ID of the account to delete.
+     * @param owner     the username of the account owner.
+     * @throws SecurityException if the user is not authorized to delete the account.
      */
     @Transactional
     public void deleteAccount(Long accountId, String owner) {
@@ -122,15 +158,5 @@ public class AccountService {
         }
 
         accountRepository.delete(account);
-    }
-
-    /**
-     * Retrieves an account by its ID.
-     *
-     * @param accountId the ID of the account to retrieve
-     * @return an Optional containing the account if found, or empty if not found
-     */
-    public Optional<Account> getAccountById(Long accountId) {
-        return accountRepository.findById(accountId);
     }
 }

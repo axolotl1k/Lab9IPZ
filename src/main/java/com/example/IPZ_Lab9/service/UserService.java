@@ -8,8 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Service class responsible for business logic related to users.
- * Provides methods for user registration and retrieval by username.
+ * Service responsible for managing user operations such as registration and authentication.
  */
 @Service
 public class UserService {
@@ -18,27 +17,57 @@ public class UserService {
     private UserRepository userRepository;
 
     /**
-     * Finds a user by their unique username.
+     * Finds a user by their username.
      *
-     * @param username the username of the user
-     * @return an Optional containing the user if found, or empty if not found
+     * @param username the username to search.
+     * @return an Optional containing the User, or empty if not found.
      */
     public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        return userRepository.findByUsername(username.toLowerCase());
     }
 
     /**
-     * Registers a new user in the system.
+     * Registers a new user.
      *
-     * @param user the user to register
-     * @return the registered user
-     * @throws IllegalArgumentException if a user with the same username already exists
+     * @param username the username for the new user.
+     * @param password the password for the new user.
+     * @return the newly registered User.
+     * @throws IllegalArgumentException if the username is already taken or if input is invalid.
      */
-    public User register(User user) {
-        user.setUsername(user.getUsername().toLowerCase());
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+    public User register(String username, String password) {
+        if (username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username and password cannot be empty");
+        }
+
+        String normalizedUsername = username.toLowerCase();
+
+        if (userRepository.findByUsername(normalizedUsername).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
+
+        User user = new User();
+        user.setUsername(normalizedUsername);
+        user.setPassword(password);
         return userRepository.save(user);
+    }
+
+    /**
+     * Authenticates a user with the provided credentials.
+     *
+     * @param username the username to authenticate.
+     * @param password the password to authenticate.
+     * @return the authenticated User.
+     * @throws IllegalArgumentException if the credentials are invalid.
+     */
+    public User authenticate(String username, String password) {
+        if (username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username and password cannot be empty");
+        }
+
+        String normalizedUsername = username.toLowerCase();
+
+        return userRepository.findByUsername(normalizedUsername)
+                .filter(user -> user.getPassword().equals(password))
+                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
     }
 }
